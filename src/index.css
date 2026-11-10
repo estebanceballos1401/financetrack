@@ -1,0 +1,50 @@
+/* Configuración general de la aplicación */
+:root {
+  font-family: 'Segoe UI', Arial, sans-serif;
+  color: #1e293b;
+  background: #f5f6fa;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Eliminar márgenes predeterminados */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* Configuración del documento */
+html,
+body {
+  min-width: 320px;
+  min-height: 100%;
+}
+
+body {
+  margin: 0;
+  background: #f5f6fa;
+}
+
+/* Contenedor principal de React */
+#root {
+  width: 100%;
+  min-height: 100vh;
+}
+
+/* Elementos generales */
+button,
+input,
+select {
+  font-family: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+a {
+  text-decoration: none;
+}
