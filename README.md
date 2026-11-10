@@ -1,16 +1,70 @@
-# React + Vite
+# FinanceTrack
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+**FinanceTrack** es una aplicación web para gestionar las finanzas personales. Permite registrar ingresos y gastos, consultar el balance disponible y visualizar información financiera mediante gráficos.
 
-Currently, two official plugins are available:
+## Características
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+- Registro de ingresos y gastos.
+- Visualización de ingresos, gastos y balance total.
+- Eliminación de transacciones.
+- Búsqueda de transacciones por nombre.
+- Filtrado por tipo de transacción.
+- Visualización de gastos agrupados por categoría.
+- Gráficos dinámicos para analizar los movimientos financieros.
+- Almacenamiento de datos en el navegador mediante LocalStorage.
 
-## React Compiler
+## Tecnologías utilizadas
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+- React
+- JavaScript
+- Vite
+- HTML5
+- CSS3
+- LocalStorage
+- Prettier
 
-## Expanding the Oxlint configuration
+## Instalación y ejecución
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and Oxlint's TypeScript related rules in your project.
+1. Clonar el repositorio:
+
+   ```bash
+   git clone https://github.com/estebanceballos1401/financetrack.git
+   ```
+
+2. Entrar en la carpeta del proyecto:
+
+   ```bash
+   cd financetrack
+   ```
+
+3. Instalar las dependencias:
+
+   ```bash
+   npm install
+   ```
+
+4. Iniciar el servidor de desarrollo:
+
+   ```bash
+   npm run dev
+   ```
+
+5. Abrir en el navegador la dirección que proporciona Vite, normalmente:
+
+   `http://localhost:5173/`
+
+## Almacenamiento de datos
+
+FinanceTrack utiliza LocalStorage para conservar las transacciones registradas en el navegador, incluso después de cerrar o actualizar la página.
+
+## Estado del proyecto
+
+En desarrollo. Se incorporarán nuevas funcionalidades y mejoras progresivamente.
+
+## Autor
+
+**Juan Esteban Ceballos Arevalo**
+
+Ingeniero de Sistemas | Junior Full Stack Developer
+
+[GitHub](https://github.com/estebanceballos1401)
