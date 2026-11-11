@@ -413,6 +413,7 @@ tbody tr:hover {
     padding: 16px;
   }
 }
+
 .delete-button {
   background: #fee2e2;
   color: #dc2626;
@@ -562,4 +563,60 @@ tbody tr:hover {
   font-size: 14px;
   text-align: center;
   padding: 20px;
+}
+
+.action-buttons {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.edit-button {
+  background: #ede9fe;
+  color: #6d28d9;
+  border: none;
+  padding: 8px 13px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.edit-button:hover {
+  background: #7659df;
+  color: white;
+}
+
+.form-actions {
+  grid-column: 1 / -1;
+  display: flex;
+  gap: 10px;
+}
+
+.form-actions .add-button {
+  grid-column: auto;
+  flex: 1;
+}
+
+.cancel-button {
+  padding: 14px 20px;
+  background: #f1f5f9;
+  color: #475569;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.cancel-button:hover {
+  background: #e2e8f0;
+}
+
+.error-message {
+  color: #dc2626;
+  font-size: 12px;
+  margin-top: 5px;
+  font-weight: 500;
 }

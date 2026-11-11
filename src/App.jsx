@@ -38,7 +38,7 @@ const initialTransactions = [
   {
     id: 2,
     name: 'Alimentación',
-    category: 'Comida',
+    category: 'Alimentación',
     date: '08 Nov 2026',
     amount: 150000,
     type: 'expense',
@@ -46,7 +46,7 @@ const initialTransactions = [
   {
     id: 3,
     name: 'Transporte',
-    category: 'Movilidad',
+    category: 'Transporte',
     date: '07 Nov 2026',
     amount: 80000,
     type: 'expense',
@@ -63,18 +63,45 @@ const initialTransactions = [
 
 function App() {
   // Estados de la aplicación
-  const [transactions, setTransactions] = useState(() => {
-    const savedTransactions = localStorage.getItem('transactions');
+const [transactions, setTransactions] = useState(() => {
+  const savedTransactions = localStorage.getItem('transactions');
 
-    return savedTransactions
-      ? JSON.parse(savedTransactions)
-      : initialTransactions;
-  });
+  const transactions = savedTransactions
+    ? JSON.parse(savedTransactions)
+    : initialTransactions;
+
+  return transactions.map((transaction) => ({
+    ...transaction,
+    category:
+      transaction.category === 'Movilidad' ||
+      transaction.category === 'Transporte'
+        ? 'Transporte'
+        : transaction.category === 'Comida' ||
+            transaction.category === 'Alimentación'
+          ? 'Alimentación'
+          : transaction.category,
+  }));
+});
 
   const [name, setName] = useState('');
   const [amount, setAmount] = useState('');
   const [type, setType] = useState('expense');
   const [category, setCategory] = useState('Alimentación');
+
+  // Categorías disponibles según el tipo de movimiento
+  const categories =
+    type === 'income'
+      ? ['Ingresos', 'Salario', 'Trabajo freelance', 'Otros']
+      : [
+          'Alimentación',
+          'Transporte',
+          'Vivienda',
+          'Entretenimiento',
+          'Otros',
+        ];
+  const [editingId, setEditingId] = useState(null);
+
+  const [errors, setErrors] = useState({});
 
   // Estados para búsqueda y filtros
   const [searchTerm, setSearchTerm] = useState('');
@@ -136,34 +163,93 @@ function App() {
     localStorage.setItem('transactions', JSON.stringify(transactions));
   }, [transactions]);
 
-  // Registrar un nuevo movimiento
+  // Validar los datos del formulario
+  function validateForm() {
+    const newErrors = {};
+    const numericAmount = Number(amount);
+
+    if (!name.trim()) {
+      newErrors.name = 'El concepto es obligatorio.';
+    }
+
+    if (!amount || !Number.isFinite(numericAmount)) {
+      newErrors.amount = 'Ingresa un valor numérico válido.';
+    } else if (numericAmount <= 0) {
+      newErrors.amount = 'El valor debe ser mayor que cero.';
+    }
+
+    setErrors(newErrors);
+
+    return Object.keys(newErrors).length === 0;
+  }
+
+  // Registrar o actualizar un movimiento
   function handleSubmit(event) {
     event.preventDefault();
 
-    if (!name.trim() || Number(amount) <= 0) {
-      alert('Ingresa un concepto y un valor válido.');
+    if (!validateForm()) {
       return;
     }
 
-    const newTransaction = {
-      id: Date.now(),
-      name: name.trim(),
-      category: category,
-      date: new Date().toLocaleDateString('es-CO'),
-      amount: Number(amount),
-      type: type,
-    };
+    const numericAmount = Number(amount);
 
-    setTransactions((previousTransactions) => [
-      newTransaction,
-      ...previousTransactions,
-    ]);
+    // Comprobar si estamos editando
+    if (editingId !== null) {
+      setTransactions((previousTransactions) =>
+        previousTransactions.map((transaction) =>
+          transaction.id === editingId
+            ? {
+                ...transaction,
+                name: name.trim(),
+                category,
+                amount: numericAmount,
+                type,
+              }
+            : transaction
+        )
+      );
+    } else {
+      // Registrar una nueva transacción
+      const newTransaction = {
+        id: Date.now(),
+        name: name.trim(),
+        category,
+        date: new Date().toLocaleDateString('es-CO'),
+        amount: numericAmount,
+        type,
+      };
 
-    // Limpiar el formulario
+      setTransactions((previousTransactions) => [
+        newTransaction,
+        ...previousTransactions,
+      ]);
+    }
+
+    resetForm();
+  }
+
+  // Limpiar el formulario
+  function resetForm() {
     setName('');
     setAmount('');
     setType('expense');
     setCategory('Alimentación');
+    setEditingId(null);
+    setErrors({});
+  }
+
+  // Cargar los datos de una transacción
+  function handleEdit(transaction) {
+    setErrors({});
+    setEditingId(transaction.id);
+    setName(transaction.name);
+    setAmount(String(transaction.amount));
+    setType(transaction.type);
+    setCategory(transaction.category);
+
+    document.getElementById('nuevo')?.scrollIntoView({
+      behavior: 'smooth',
+    });
   }
 
   // Eliminar un movimiento
@@ -174,6 +260,9 @@ function App() {
 
     if (!confirmDelete) {
       return;
+    }
+    if (editingId === id) {
+      resetForm();
     }
 
     setTransactions((previousTransactions) =>
@@ -344,21 +433,39 @@ function App() {
         <section className="transactions" id="nuevo">
           <div className="section-header">
             <div>
-              <h2>Registrar movimiento</h2>
-              <p>Agrega un nuevo ingreso o gasto.</p>
+              <h2>
+                {editingId !== null
+                  ? 'Editar movimiento'
+                  : 'Registrar movimiento'}
+              </h2>
+
+              <p>
+                {editingId !== null
+                  ? 'Modifica los datos y guarda los cambios.'
+                  : 'Agrega un nuevo ingreso o gasto.'}
+              </p>
             </div>
           </div>
 
-          <form className="movement-form" onSubmit={handleSubmit}>
+          <form className="movement-form" onSubmit={handleSubmit} noValidate>
             <div className="form-group">
               <label>Concepto</label>
 
               <input
+                required
                 type="text"
                 placeholder="Ej. Compra de mercado"
                 value={name}
-                onChange={(event) => setName(event.target.value)}
+                onChange={(event) => {
+                  setName(event.target.value);
+                  setErrors((previous) => ({
+                    ...previous,
+                    name: '',
+                  }));
+                }}
               />
+
+              {errors.name && <p className="error-message">{errors.name}</p>}
             </div>
 
             <div className="form-group">
@@ -366,7 +473,15 @@ function App() {
 
               <select
                 value={type}
-                onChange={(event) => setType(event.target.value)}
+                onChange={(event) => {
+                  const newType = event.target.value;
+
+                  setType(newType);
+
+                  setCategory(
+                    newType === 'income' ? 'Ingresos' : 'Alimentación'
+                  );
+                }}
               >
                 <option value="expense">Gasto</option>
                 <option value="income">Ingreso</option>
@@ -380,12 +495,11 @@ function App() {
                 value={category}
                 onChange={(event) => setCategory(event.target.value)}
               >
-                <option>Alimentación</option>
-                <option>Transporte</option>
-                <option>Vivienda</option>
-                <option>Entretenimiento</option>
-                <option>Salario</option>
-                <option>Otros</option>
+                {categories.map((item) => (
+                  <option key={item} value={item}>
+                    {item}
+                  </option>
+                ))}
               </select>
             </div>
 
@@ -393,18 +507,43 @@ function App() {
               <label>Valor en pesos</label>
 
               <input
+                required
                 type="number"
                 min="1"
                 step="1"
                 placeholder="Ej. 150000"
                 value={amount}
-                onChange={(event) => setAmount(event.target.value)}
+                onChange={(event) => {
+                  setAmount(event.target.value);
+                  setErrors((previous) => ({
+                    ...previous,
+                    amount: '',
+                  }));
+                }}
               />
+
+              {errors.amount && (
+                <p className="error-message">{errors.amount}</p>
+              )}
             </div>
 
-            <button type="submit" className="add-button">
-              + Agregar movimiento
-            </button>
+            <div className="form-actions">
+              <button type="submit" className="add-button">
+                {editingId !== null
+                  ? 'Guardar cambios'
+                  : '+ Agregar movimiento'}
+              </button>
+
+              {editingId !== null && (
+                <button
+                  type="button"
+                  className="cancel-button"
+                  onClick={resetForm}
+                >
+                  Cancelar
+                </button>
+              )}
+            </div>
           </form>
         </section>
 
@@ -468,13 +607,23 @@ function App() {
                     </td>
 
                     <td>
-                      <button
-                        type="button"
-                        className="delete-button"
-                        onClick={() => handleDelete(transaction.id)}
-                      >
-                        Eliminar
-                      </button>
+                      <div className="action-buttons">
+                        <button
+                          type="button"
+                          className="edit-button"
+                          onClick={() => handleEdit(transaction)}
+                        >
+                          Editar
+                        </button>
+
+                        <button
+                          type="button"
+                          className="delete-button"
+                          onClick={() => handleDelete(transaction.id)}
+                        >
+                          Eliminar
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}
