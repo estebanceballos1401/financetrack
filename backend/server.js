@@ -7,15 +7,40 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 // Configuración del servidor
+const allowedOrigins = [
+  'http://localhost:5173',
+  process.env.FRONTEND_URL,
+].filter(Boolean);
+
 app.use(
   cors({
-    origin: 'http://localhost:5173',
+    origin: allowedOrigins,
   })
 );
 
 app.use(express.json({ limit: '10kb' }));
 
 // GET: Consultar transacciones
+// GET: Verificar estado del servidor y conexión a PostgreSQL
+app.get('/api/health', async (req, res) => {
+  try {
+    await pool.query('SELECT 1');
+
+    res.status(200).json({
+      status: 'OK',
+      message: 'FinanceTrack API está funcionando correctamente',
+      database: 'connected',
+    });
+  } catch (error) {
+    console.error('Error en health check:', error);
+
+    res.status(503).json({
+      status: 'ERROR',
+      message: 'No se pudo conectar con la base de datos',
+      database: 'disconnected',
+    });
+  }
+});
 app.get('/api/transactions', async (req, res) => {
   try {
     const result = await pool.query(
