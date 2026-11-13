@@ -25,63 +25,49 @@ function formatMoney(value) {
   });
 }
 
-// Datos iniciales
-const initialTransactions = [
-  {
-    id: 1,
-    name: 'Salario',
-    category: 'Ingresos',
-    date: '09 Nov 2026',
-    amount: 2500000,
-    type: 'income',
-  },
-  {
-    id: 2,
-    name: 'Alimentación',
-    category: 'Alimentación',
-    date: '08 Nov 2026',
-    amount: 150000,
-    type: 'expense',
-  },
-  {
-    id: 3,
-    name: 'Transporte',
-    category: 'Transporte',
-    date: '07 Nov 2026',
-    amount: 80000,
-    type: 'expense',
-  },
-  {
-    id: 4,
-    name: 'Trabajo freelance',
-    category: 'Ingresos',
-    date: '06 Nov 2026',
-    amount: 450000,
-    type: 'income',
-  },
-];
+
 
 function App() {
   // Estados de la aplicación
-const [transactions, setTransactions] = useState(() => {
-  const savedTransactions = localStorage.getItem('transactions');
 
-  const transactions = savedTransactions
-    ? JSON.parse(savedTransactions)
-    : initialTransactions;
+  const [transactions, setTransactions] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
 
-  return transactions.map((transaction) => ({
-    ...transaction,
-    category:
-      transaction.category === 'Movilidad' ||
-      transaction.category === 'Transporte'
-        ? 'Transporte'
-        : transaction.category === 'Comida' ||
-            transaction.category === 'Alimentación'
-          ? 'Alimentación'
-          : transaction.category,
-  }));
-});
+
+  // Consultar transacciones desde el backend
+  useEffect(() => {
+    async function fetchTransactions() {
+      try {
+        const response = await fetch(
+          'http://localhost:3000/api/transactions'
+        );
+
+        if (!response.ok) {
+          throw new Error('No se pudieron obtener las transacciones');
+        }
+
+        const data = await response.json();
+
+        setTransactions(
+          data.transactions.map((transaction) => ({
+            ...transaction,
+            amount: Number(transaction.amount),
+            date: new Date(transaction.created_at).toLocaleDateString('es-CO'),
+          }))
+        );
+      } catch (error) {
+        console.error('Error al consultar transacciones:', error);
+        setError('No fue posible conectar con el servidor');
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    fetchTransactions();
+  }, []);
+
+
 
   const [name, setName] = useState('');
   const [amount, setAmount] = useState('');
@@ -93,12 +79,12 @@ const [transactions, setTransactions] = useState(() => {
     type === 'income'
       ? ['Ingresos', 'Salario', 'Trabajo freelance', 'Otros']
       : [
-          'Alimentación',
-          'Transporte',
-          'Vivienda',
-          'Entretenimiento',
-          'Otros',
-        ];
+        'Alimentación',
+        'Transporte',
+        'Vivienda',
+        'Entretenimiento',
+        'Otros',
+      ];
   const [editingId, setEditingId] = useState(null);
 
   const [errors, setErrors] = useState({});
@@ -157,12 +143,6 @@ const [transactions, setTransactions] = useState(() => {
 
     return matchesSearch && matchesType;
   });
-
-  // Guardar movimientos automáticamente
-  useEffect(() => {
-    localStorage.setItem('transactions', JSON.stringify(transactions));
-  }, [transactions]);
-
   // Validar los datos del formulario
   function validateForm() {
     const newErrors = {};
@@ -184,7 +164,7 @@ const [transactions, setTransactions] = useState(() => {
   }
 
   // Registrar o actualizar un movimiento
-  function handleSubmit(event) {
+  async function handleSubmit(event) {
     event.preventDefault();
 
     if (!validateForm()) {
@@ -192,40 +172,66 @@ const [transactions, setTransactions] = useState(() => {
     }
 
     const numericAmount = Number(amount);
+    const isEditing = editingId !== null;
 
-    // Comprobar si estamos editando
-    if (editingId !== null) {
-      setTransactions((previousTransactions) =>
-        previousTransactions.map((transaction) =>
-          transaction.id === editingId
-            ? {
-                ...transaction,
-                name: name.trim(),
-                category,
-                amount: numericAmount,
-                type,
-              }
-            : transaction
-        )
-      );
-    } else {
-      // Registrar una nueva transacción
-      const newTransaction = {
-        id: Date.now(),
-        name: name.trim(),
-        category,
-        date: new Date().toLocaleDateString('es-CO'),
-        amount: numericAmount,
-        type,
+    const url = isEditing
+      ? `http://localhost:3000/api/transactions/${editingId}`
+      : 'http://localhost:3000/api/transactions';
+
+    try {
+      setError('');
+
+      const response = await fetch(url, {
+        method: isEditing ? 'PUT' : 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name: name.trim(),
+          type,
+          amount: numericAmount,
+          category,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(
+          data.message || 'No fue posible guardar la transacción'
+        );
+      }
+
+      const savedTransaction = data.transaction;
+
+      const normalizedTransaction = {
+        ...savedTransaction,
+        amount: Number(savedTransaction.amount),
+        date: new Date(savedTransaction.created_at).toLocaleDateString(
+          'es-CO'
+        ),
       };
 
-      setTransactions((previousTransactions) => [
-        newTransaction,
-        ...previousTransactions,
-      ]);
-    }
+      if (isEditing) {
+        setTransactions((previousTransactions) =>
+          previousTransactions.map((transaction) =>
+            String(transaction.id) === String(normalizedTransaction.id)
+              ? normalizedTransaction
+              : transaction
+          )
+        );
+      } else {
+        setTransactions((previousTransactions) => [
+          normalizedTransaction,
+          ...previousTransactions,
+        ]);
+      }
 
-    resetForm();
+      resetForm();
+    } catch (error) {
+      console.error('Error al guardar la transacción:', error);
+      setError(error.message || 'No fue posible conectar con el servidor');
+    }
   }
 
   // Limpiar el formulario
@@ -296,6 +302,8 @@ const [transactions, setTransactions] = useState(() => {
 
       {/* Contenido principal */}
       <main className="main-content">
+        {loading && <p>Cargando transacciones...</p>}
+        {error && <p role="alert">{error}</p>}
         <header className="topbar">
           <div>
             <h1>Dashboard</h1>
