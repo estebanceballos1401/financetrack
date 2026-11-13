@@ -1,70 +1,202 @@
-# FinanceTrack
+# FinanceTrack 💰
 
-**FinanceTrack** es una aplicación web para gestionar las finanzas personales. Permite registrar ingresos y gastos, consultar el balance disponible y visualizar información financiera mediante gráficos.
+**FinanceTrack** es una aplicación web de gestión de finanzas personales que permite registrar, organizar y analizar ingresos y gastos mediante un panel de control interactivo.
 
-## Características
+El proyecto está desarrollado con una arquitectura Full Stack, utilizando React para la interfaz de usuario, Node.js y Express para el backend, y PostgreSQL para la persistencia de datos.
+
+## 🚀 Características principales
 
 - Registro de ingresos y gastos.
-- Visualización de ingresos, gastos y balance total.
-- Eliminación de transacciones.
+- Consulta del balance disponible.
+- Edición y eliminación de transacciones.
 - Búsqueda de transacciones por nombre.
-- Filtrado por tipo de transacción.
-- Visualización de gastos agrupados por categoría.
-- Gráficos dinámicos para analizar los movimientos financieros.
-- Almacenamiento de datos en el navegador mediante LocalStorage.
+- Filtrado por tipo de movimiento.
+- Clasificación de gastos por categorías.
+- Visualización de ingresos y gastos mediante gráficos.
+- Persistencia de información en PostgreSQL.
+- Validación de datos en el backend.
+- API REST para la gestión de transacciones.
 
-## Tecnologías utilizadas
+## 🛠️ Tecnologías utilizadas
 
-- React
+### Frontend
+- React 19
 - JavaScript
 - Vite
 - HTML5
 - CSS3
-- LocalStorage
+
+### Backend
+- Node.js
+- Express 5
+- JavaScript
+- API REST
+
+### Base de datos
+- PostgreSQL
+- Librería `pg`
+
+### Herramientas
+- Git
+- GitHub
+- Visual Studio Code
 - Prettier
 
-## Instalación y ejecución
+## 🏗️ Arquitectura del proyecto
 
-1. Clonar el repositorio:
+FinanceTrack utiliza una arquitectura cliente-servidor:
 
-   ```bash
-   git clone https://github.com/estebanceballos1401/financetrack.git
-   ```
+- **Frontend:** interfaz desarrollada en React.
+- **Backend:** API REST construida con Node.js y Express.
+- **Base de datos:** PostgreSQL para almacenar las transacciones.
 
-2. Entrar en la carpeta del proyecto:
+### Estructura de carpetas
 
-   ```bash
-   cd financetrack
-   ```
+```text
+financetrack/
+│
+├── backend/
+│   ├── db.js
+│   ├── server.js
+│   ├── test-db.js
+│   ├── package.json
+│   └── .env.example
+│
+├── src/
+│   ├── services/
+│   │   └── transactionService.js
+│   ├── App.jsx
+│   └── App.css
+│
+├── public/
+├── index.html
+├── package.json
+└── README.md
+```
 
-3. Instalar las dependencias:
+## ⚙️ Instalación y ejecución
 
-   ```bash
-   npm install
-   ```
+### 1. Clonar el repositorio
 
-4. Iniciar el servidor de desarrollo:
+```bash
+git clone https://github.com/estebanceballos1401/financetrack.git
+```
 
-   ```bash
-   npm run dev
-   ```
+### 2. Entrar en el proyecto
 
-5. Abrir en el navegador la dirección que proporciona Vite, normalmente:
+```bash
+cd financetrack
+```
 
-   `http://localhost:5173/`
+### 3. Instalar dependencias del frontend
 
-## Almacenamiento de datos
+```bash
+npm install
+```
 
-FinanceTrack utiliza LocalStorage para conservar las transacciones registradas en el navegador, incluso después de cerrar o actualizar la página.
+### 4. Instalar dependencias del backend
 
-## Estado del proyecto
+```bash
+cd backend
+npm install
+```
 
-En desarrollo. Se incorporarán nuevas funcionalidades y mejoras progresivamente.
+### 5. Configurar variables de entorno
 
-## Autor
+Dentro de la carpeta `backend`, crear un archivo `.env` tomando como referencia `.env.example`.
 
-**Juan Esteban Ceballos Arevalo**
+Configurar las variables de conexión a PostgreSQL:
+
+```env
+DB_USER=postgres
+DB_HOST=localhost
+DB_NAME=financetrack
+DB_PASSWORD=tu_contraseña
+DB_PORT=5432
+PORT=3000
+```
+
+**Importante:** reemplazar `tu_contraseña` por la contraseña local de PostgreSQL. No publicar el archivo `.env`.
+
+### 6. Configurar la base de datos
+
+Crear una base de datos llamada `financetrack` en PostgreSQL.
+
+Después, ejecutar el script SQL ubicado en:
+
+```text
+database/schema.sql
+```
+
+Este script crea la tabla `transactions`, que almacena los ingresos y gastos registrados en la aplicación.
+
+**Estructura de la tabla:**
+
+- `id`: identificador único.
+- `name`: nombre de la transacción.
+- `type`: tipo de movimiento (`income` o `expense`).
+- `amount`: importe de la transacción.
+- `category`: categoría del movimiento.
+- `created_at`: fecha de creación.
+
+### 7. Iniciar el backend
+
+Desde la carpeta `backend`:
+
+```bash
+npm run dev
+```
+
+El servidor estará disponible en:
+
+```text
+http://localhost:3000
+```
+
+### 8. Iniciar el frontend
+
+Abrir otra terminal, regresar a la carpeta principal y ejecutar:
+
+```bash
+npm run dev
+```
+
+Vite estará disponible normalmente en:
+
+```text
+http://localhost:5173
+```
+
+## 🔌 API REST
+
+La API permite gestionar las transacciones mediante los siguientes endpoints:
+
+| Método | Endpoint | Descripción |
+|---|---|---|
+| GET | `/api/transactions` | Consultar transacciones |
+| POST | `/api/transactions` | Registrar una transacción |
+| PUT | `/api/transactions/:id` | Actualizar una transacción |
+| DELETE | `/api/transactions/:id` | Eliminar una transacción |
+
+## 🧪 Validaciones implementadas
+
+- Validación de campos obligatorios.
+- Validación del tipo de transacción.
+- Validación de importes positivos.
+- Validación de identificadores.
+- Control de registros inexistentes.
+- Consultas SQL parametrizadas.
+
+## 📌 Estado del proyecto
+
+**En desarrollo.**
+
+FinanceTrack es un proyecto de aprendizaje y portafolio profesional en constante evolución, enfocado en fortalecer habilidades de desarrollo Full Stack, integración de bases de datos y construcción de API REST.
+
+## 👨‍💻 Autor
+
+**Juan Esteban Ceballos Arévalo**
 
 Ingeniero de Sistemas | Junior Full Stack Developer
 
-[GitHub](https://github.com/estebanceballos1401)
+- GitHub: https://github.com/estebanceballos1401

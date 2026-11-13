@@ -1,0 +1,8 @@
+CREATE TABLE IF NOT EXISTS transactions (
+    id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    name VARCHAR(150) NOT NULL,
+    type VARCHAR(10) NOT NULL CHECK (type IN ('income', 'expense')),
+    amount NUMERIC(12, 2) NOT NULL CHECK (amount > 0),
+    category VARCHAR(100) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
