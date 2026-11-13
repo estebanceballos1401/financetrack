@@ -1,5 +1,11 @@
 import { useState, useEffect } from 'react';
 import './App.css';
+import {
+  getTransactions,
+  createTransaction,
+  updateTransaction,
+  deleteTransaction,
+} from './services/transactionService';
 
 // Tarjetas financieras
 function SummaryCard({ title, amount, description, symbol, color }) {
@@ -25,8 +31,6 @@ function formatMoney(value) {
   });
 }
 
-
-
 function App() {
   // Estados de la aplicación
 
@@ -34,23 +38,14 @@ function App() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
-
   // Consultar transacciones desde el backend
   useEffect(() => {
     async function fetchTransactions() {
       try {
-        const response = await fetch(
-          'http://localhost:3000/api/transactions'
-        );
-
-        if (!response.ok) {
-          throw new Error('No se pudieron obtener las transacciones');
-        }
-
-        const data = await response.json();
+        const transactionsData = await getTransactions();
 
         setTransactions(
-          data.transactions.map((transaction) => ({
+          transactionsData.map((transaction) => ({
             ...transaction,
             amount: Number(transaction.amount),
             date: new Date(transaction.created_at).toLocaleDateString('es-CO'),
@@ -67,8 +62,6 @@ function App() {
     fetchTransactions();
   }, []);
 
-
-
   const [name, setName] = useState('');
   const [amount, setAmount] = useState('');
   const [type, setType] = useState('expense');
@@ -78,13 +71,7 @@ function App() {
   const categories =
     type === 'income'
       ? ['Ingresos', 'Salario', 'Trabajo freelance', 'Otros']
-      : [
-        'Alimentación',
-        'Transporte',
-        'Vivienda',
-        'Entretenimiento',
-        'Otros',
-      ];
+      : ['Alimentación', 'Transporte', 'Vivienda', 'Entretenimiento', 'Otros'];
   const [editingId, setEditingId] = useState(null);
 
   const [errors, setErrors] = useState({});
@@ -174,42 +161,31 @@ function App() {
     const numericAmount = Number(amount);
     const isEditing = editingId !== null;
 
-    const url = isEditing
-      ? `http://localhost:3000/api/transactions/${editingId}`
-      : 'http://localhost:3000/api/transactions';
-
     try {
       setError('');
 
-      const response = await fetch(url, {
-        method: isEditing ? 'PUT' : 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
+      let savedTransaction;
+
+      if (isEditing) {
+        savedTransaction = await updateTransaction(editingId, {
           name: name.trim(),
           type,
           amount: numericAmount,
           category,
-        }),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(
-          data.message || 'No fue posible guardar la transacción'
-        );
+        });
+      } else {
+        savedTransaction = await createTransaction({
+          name: name.trim(),
+          type,
+          amount: numericAmount,
+          category,
+        });
       }
-
-      const savedTransaction = data.transaction;
 
       const normalizedTransaction = {
         ...savedTransaction,
         amount: Number(savedTransaction.amount),
-        date: new Date(savedTransaction.created_at).toLocaleDateString(
-          'es-CO'
-        ),
+        date: new Date(savedTransaction.created_at).toLocaleDateString('es-CO'),
       };
 
       if (isEditing) {
@@ -259,21 +235,33 @@ function App() {
   }
 
   // Eliminar un movimiento
-  function handleDelete(id) {
-    const confirmDelete = window.confirm(
-      '¿Estás seguro de eliminar este movimiento?'
+  async function handleDelete(id) {
+    const confirmed = window.confirm(
+      '¿Estás seguro de que deseas eliminar este movimiento?'
     );
 
-    if (!confirmDelete) {
+    if (!confirmed) {
       return;
     }
-    if (editingId === id) {
-      resetForm();
-    }
 
-    setTransactions((previousTransactions) =>
-      previousTransactions.filter((transaction) => transaction.id !== id)
-    );
+    try {
+      setError('');
+
+      await deleteTransaction(id);
+
+      setTransactions((previousTransactions) =>
+        previousTransactions.filter(
+          (transaction) => String(transaction.id) !== String(id)
+        )
+      );
+
+      if (String(editingId) === String(id)) {
+        resetForm();
+      }
+    } catch (error) {
+      console.error('Error al eliminar el movimiento:', error);
+      setError(error.message || 'No fue posible conectar con el servidor');
+    }
   }
 
   return (
